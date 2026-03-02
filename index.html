@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Marketing Team Role Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+        
+        .instruction {
+            font-size: 16px;
+            color: #3b82f6;
+            font-weight: 600;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 12px 24px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        /* Diagram Container */
+        .diagram-wrapper {
+            position: relative;
+            width: 100%;
+            height: 1100px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 20px;
+            margin: 30px 0;
+            border: 3px solid #e2e8f0;
+        }
+        
+        /* SVG for connection lines */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .connection-line {
+            stroke-width: 3;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+        
+        .connection-line.active {
+            opacity: 1;
+            stroke-width: 5;
+        }
+        
+        /* Role Cards */
+        .role-card {
+            position: absolute;
+            width: 320px;
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border: 3px solid;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            z-index: 10;
+        }
+        
+        .role-card.dimmed {
+            opacity: 0.35;
+            transform: scale(0.97);
+        }
+        
+        .role-card.highlighted {
+            z-index: 9;
+            opacity: 1;
+            transform: scale(1.02);
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1.02);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            }
+        }
+        
+        .role-card.pulse {
+            animation: pulse 1s ease-in-out;
+        }
+        
+        .role-card.violet { border-color: #8b5cf6; }
+        .role-card.blue { border-color: #3b82f6; }
+        .role-card.emerald { border-color: #10b981; }
+        .role-card.amber { border-color: #f59e0b; }
+        .role-card.rose { border-color: #f43f5e; }
+        .role-card.indigo { border-color: #6366f1; }
+        
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+        
+        .role-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .role-icon.violet { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .role-icon.blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .role-icon.emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .role-icon.amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .role-icon.rose { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
+        .role-icon.indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        
+        .role-icon svg {
+            width: 36px;
+            height: 36px;
+            stroke: white;
+            stroke-width: 2.5;
+            fill: none;
+        }
+        
+        .role-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        /* Card Content */
+        .card-section {
+            margin-bottom: 14px;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        
+        .section-content {
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        
+        .collaborators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .collaborator-tag {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 2px solid #cbd5e1;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .collaborator-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .collaborator-tag.active {
+            transform: scale(1.1);
+            font-weight: bold;
+        }
+        
+        .collaborator-tag.violet { background: #faf5ff; border-color: #8b5cf6; color: #7c3aed; }
+        .collaborator-tag.blue { background: #eff6ff; border-color: #3b82f6; color: #2563eb; }
+        .collaborator-tag.emerald { background: #ecfdf5; border-color: #10b981; color: #059669; }
+        .collaborator-tag.amber { background: #fffbeb; border-color: #f59e0b; color: #d97706; }
+        .collaborator-tag.rose { background: #fff1f2; border-color: #f43f5e; color: #e11d48; }
+        .collaborator-tag.indigo { background: #eef2ff; border-color: #6366f1; color: #4f46e5; }
+        
+        .tools-list {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .impact-text {
+            font-size: 13px;
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .notes-text {
+            font-size: 12px;
+            color: #f59e0b;
+            background: #fffbeb;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+        }
+        
+        /* Card Positions - Spread out more to prevent overlap */
+        .role-card.pos-1 { 
+            top: 30px; 
+            left: 30px; 
+        }
+        .role-card.pos-2 { 
+            top: 30px; 
+            right: 30px; 
+        }
+        .role-card.pos-3 { 
+            top: 420px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        .role-card.pos-4 { 
+            bottom: 30px; 
+            left: 30px; 
+        }
+        .role-card.pos-5 { 
+            bottom: 30px; 
+            right: 30px; 
+        }
+        .role-card.pos-6 { 
+            top: 420px; 
+            right: 30px; 
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 5px solid;
+            text-align: center;
+        }
+        
+        .stat-card.rose { border-left-color: #f43f5e; }
+        .stat-card.emerald { border-left-color: #10b981; }
+        .stat-card.violet { border-left-color: #8b5cf6; }
+        
+        .stat-number {
+            font-size: 42px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .stat-detail {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        /* Legend */
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .legend-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #475569;
+        }
+        
+        .legend-line {
+            width: 40px;
+            height: 3px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Interactive Marketing Team Map</h1>
+            <p>Explore how team roles connect and collaborate</p>
+            <div class="instruction">👆 Hover over any role card to see connections | 👉 Click collaborator tags to jump to that role</div>
+        </div>
+        
+        <div class="diagram-wrapper">
+            <!-- SVG for connection lines -->
+            <svg class="connections-svg" id="connectionsSvg">
+                <defs>
+                    <linearGradient id="grad-violet" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="grad-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="grad-amber" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="grad-rose" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f43f5e;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f43f5e;stop-opacity:0.5" />
+                    </linearGradient>
+                    <linearGradient id="grad-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.5" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            
+            <!-- Role Cards -->
+            
+            <!-- Content Creator -->
+            <div class="role-card violet pos-1" data-role="content" data-color="violet">
+                <div class="card-header">
+                    <div class="role-icon violet">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Content Creator</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Develops marketing content (blogs, social, emails)</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag blue" data-target="social">Social Media Manager</span>
+                        <span class="collaborator-tag emerald" data-target="intern">Intern</span>
+                        <span class="collaborator-tag indigo" data-target="designer">Designer</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Drives brand awareness and engagement</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Canva, Google Docs</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Needs clear briefs and feedback cycles</div>
+                </div>
+            </div>
+            
+            <!-- Social Media Manager -->
+            <div class="role-card blue pos-2" data-role="social" data-color="blue">
+                <div class="card-header">
+                    <div class="role-icon blue">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Social Media Manager</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Manages brand presence on social platforms</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag violet" data-target="content">Content Creator</span>
+                        <span class="collaborator-tag amber" data-target="analyst">Analyst</span>
+                        <span class="collaborator-tag emerald" data-target="intern">Intern</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Connects brand with target audience</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Hootsuite, Instagram, X</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Tracks performance and schedules content</div>
+                </div>
+            </div>
+            
+            <!-- Campaign Manager -->
+            <div class="role-card rose pos-3" data-role="campaign" data-color="rose">
+                <div class="card-header">
+                    <div class="role-icon rose">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Campaign Manager</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Leads marketing campaigns from planning to execution</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag violet" data-target="content">Content Creator</span>
+                        <span class="collaborator-tag blue" data-target="social">Social Media</span>
+                        <span class="collaborator-tag amber" data-target="analyst">Analyst</span>
+                        <span class="collaborator-tag indigo" data-target="designer">Designer</span>
+                        <span class="collaborator-tag emerald" data-target="intern">Intern</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Coordinates people, timelines, and budgets</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Airtable, Trello</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Keeps all parts moving together</div>
+                </div>
+            </div>
+            
+            <!-- Marketing Analyst -->
+            <div class="role-card amber pos-4" data-role="analyst" data-color="amber">
+                <div class="card-header">
+                    <div class="role-icon amber">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Marketing Analyst</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Tracks campaign performance, delivers insights</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag rose" data-target="campaign">Campaign Manager</span>
+                        <span class="collaborator-tag blue" data-target="social">Social Media Manager</span>
+                        <span class="collaborator-tag emerald" data-target="intern">Intern</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Enables data-driven decisions</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Google Analytics, Excel</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Often supports pitch decks and recaps</div>
+                </div>
+            </div>
+            
+            <!-- Brand Designer -->
+            <div class="role-card indigo pos-5" data-role="designer" data-color="indigo">
+                <div class="card-header">
+                    <div class="role-icon indigo">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Brand Designer</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Creates visual assets for marketing materials</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag violet" data-target="content">Content Creator</span>
+                        <span class="collaborator-tag rose" data-target="campaign">Campaign Manager</span>
+                        <span class="collaborator-tag emerald" data-target="intern">Intern</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Ensures visual consistency</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Figma, Adobe Illustrator</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Needs early involvement</div>
+                </div>
+            </div>
+            
+            <!-- Marketing Intern -->
+            <div class="role-card emerald pos-6" data-role="intern" data-color="emerald">
+                <div class="card-header">
+                    <div class="role-icon emerald">
+                        <svg viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                    </div>
+                    <div class="role-title">Marketing Intern</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Main Responsibility</div>
+                    <div class="section-content">Supports various team tasks, research, outreach</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Works Closely With</div>
+                    <div class="collaborators">
+                        <span class="collaborator-tag rose" data-target="campaign">Campaign Manager</span>
+                        <span class="collaborator-tag violet" data-target="content">Content Creator</span>
+                        <span class="collaborator-tag blue" data-target="social">Social Media</span>
+                        <span class="collaborator-tag amber" data-target="analyst">Analyst</span>
+                        <span class="collaborator-tag indigo" data-target="designer">Designer</span>
+                    </div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Impact</div>
+                    <div class="impact-text">Provides flexibility and support</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="section-label">Tools</div>
+                    <div class="tools-list">Google Sheets, Docs</div>
+                </div>
+                
+                <div class="card-section">
+                    <div class="notes-text">Needs structured guidance</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats-section">
+            <div class="stat-card rose">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Most Connected</div>
+                <div class="stat-detail">Campaign Manager & Marketing Intern</div>
+            </div>
+            
+            <div class="stat-card emerald">
+                <div class="stat-number">15</div>
+                <div class="stat-label">Total Connections</div>
+                <div class="stat-detail">Between all team members</div>
+            </div>
+            
+            <div class="stat-card violet">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Content Pipeline</div>
+                <div class="stat-detail">Designer → Creator → Social</div>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-title">How to Read This Map</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-line" style="background: linear-gradient(90deg, #8b5cf6, #3b82f6);"></div>
+                    <span>Connection lines show collaboration between roles</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #10b981; opacity: 1;"></div>
+                    <span>Active (highlighted when hovering)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #94a3b8; opacity: 0.3;"></div>
+                    <span>Inactive (dimmed when not relevant)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Connection data
+        const connections = [
+            { from: 'content', to: 'social' },
+            { from: 'content', to: 'intern' },
+            { from: 'content', to: 'designer' },
+            { from: 'social', to: 'analyst' },
+            { from: 'social', to: 'intern' },
+            { from: 'campaign', to: 'content' },
+            { from: 'campaign', to: 'social' },
+            { from: 'campaign', to: 'analyst' },
+            { from: 'campaign', to: 'designer' },
+            { from: 'campaign', to: 'intern' },
+            { from: 'analyst', to: 'intern' },
+            { from: 'designer', to: 'intern' }
+        ];
+        
+        // Get all role cards
+        const cards = document.querySelectorAll('.role-card');
+        const svg = document.getElementById('connectionsSvg');
+        
+        // Color mapping
+        const colors = {
+            violet: '#8b5cf6',
+            blue: '#3b82f6',
+            emerald: '#10b981',
+            amber: '#f59e0b',
+            rose: '#f43f5e',
+            indigo: '#6366f1'
+        };
+        
+        // Draw connection lines
+        function drawConnections() {
+            svg.innerHTML = svg.querySelector('defs').outerHTML;
+            
+            connections.forEach(conn => {
+                const fromCard = document.querySelector(`[data-role="${conn.from}"]`);
+                const toCard = document.querySelector(`[data-role="${conn.to}"]`);
+                
+                if (fromCard && toCard) {
+                    const fromRect = fromCard.getBoundingClientRect();
+                    const toRect = toCard.getBoundingClientRect();
+                    const svgRect = svg.getBoundingClientRect();
+                    
+                    const x1 = fromRect.left + fromRect.width / 2 - svgRect.left;
+                    const y1 = fromRect.top + fromRect.height / 2 - svgRect.top;
+                    const x2 = toRect.left + toRect.width / 2 - svgRect.left;
+                    const y2 = toRect.top + toRect.height / 2 - svgRect.top;
+                    
+                    const fromColor = fromCard.dataset.color;
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', y1);
+                    line.setAttribute('x2', x2);
+                    line.setAttribute('y2', y2);
+                    line.setAttribute('stroke', `url(#grad-${fromColor})`);
+                    line.classList.add('connection-line');
+                    line.dataset.from = conn.from;
+                    line.dataset.to = conn.to;
+                    
+                    svg.appendChild(line);
+                }
+            });
+        }
+        
+        // Initial draw
+        drawConnections();
+        
+        // Redraw on window resize
+        window.addEventListener('resize', drawConnections);
+        
+        // Hover interactions
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const role = this.dataset.role;
+                
+                // Dim all cards
+                cards.forEach(c => c.classList.add('dimmed'));
+                
+                // Highlight current card
+                this.classList.remove('dimmed');
+                this.classList.add('highlighted');
+                
+                // Find and highlight connected cards
+                const connectedRoles = new Set();
+                connections.forEach(conn => {
+                    if (conn.from === role) {
+                        connectedRoles.add(conn.to);
+                    }
+                    if (conn.to === role) {
+                        connectedRoles.add(conn.from);
+                    }
+                });
+                
+                connectedRoles.forEach(connRole => {
+                    const connCard = document.querySelector(`[data-role="${connRole}"]`);
+                    if (connCard) {
+                        connCard.classList.remove('dimmed');
+                        connCard.classList.add('highlighted');
+                    }
+                });
+                
+                // Highlight connection lines
+                const lines = svg.querySelectorAll('.connection-line');
+                lines.forEach(line => {
+                    if (line.dataset.from === role || line.dataset.to === role) {
+                        line.classList.add('active');
+                    }
+                });
+                
+                // Highlight collaborator tags
+                const tags = this.querySelectorAll('.collaborator-tag');
+                tags.forEach(tag => tag.classList.add('active'));
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                // Remove all highlights
+                cards.forEach(c => {
+                    c.classList.remove('dimmed', 'highlighted');
+                });
+                
+                const lines = svg.querySelectorAll('.connection-line');
+                lines.forEach(line => line.classList.remove('active'));
+                
+                const tags = document.querySelectorAll('.collaborator-tag');
+                tags.forEach(tag => tag.classList.remove('active'));
+            });
+        });
+        
+        // Click handlers for collaborator tags
+        const collaboratorTags = document.querySelectorAll('.collaborator-tag');
+        collaboratorTags.forEach(tag => {
+            tag.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const targetRole = this.dataset.target;
+                const targetCard = document.querySelector(`[data-role="${targetRole}"]`);
+                
+                if (targetCard) {
+                    // Scroll to target card
+                    targetCard.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'center'
+                    });
+                    
+                    // Add pulse animation
+                    targetCard.classList.add('pulse');
+                    
+                    // Remove pulse animation after it completes
+                    setTimeout(() => {
+                        targetCard.classList.remove('pulse');
+                    }, 1000);
+                    
+                    // Temporarily highlight the target card
+                    cards.forEach(c => c.classList.add('dimmed'));
+                    targetCard.classList.remove('dimmed');
+                    targetCard.classList.add('highlighted');
+                    
+                    // Find connected roles and highlight them
+                    const connectedRoles = new Set();
+                    connections.forEach(conn => {
+                        if (conn.from === targetRole) {
+                            connectedRoles.add(conn.to);
+                        }
+                        if (conn.to === targetRole) {
+                            connectedRoles.add(conn.from);
+                        }
+                    });
+                    
+                    connectedRoles.forEach(connRole => {
+                        const connCard = document.querySelector(`[data-role="${connRole}"]`);
+                        if (connCard) {
+                            connCard.classList.remove('dimmed');
+                            connCard.classList.add('highlighted');
+                        }
+                    });
+                    
+                    // Highlight connection lines
+                    const lines = svg.querySelectorAll('.connection-line');
+                    lines.forEach(line => {
+                        if (line.dataset.from === targetRole || line.dataset.to === targetRole) {
+                            line.classList.add('active');
+                        }
+                    });
+                    
+                    // Remove highlights after 3 seconds
+                    setTimeout(() => {
+                        cards.forEach(c => {
+                            c.classList.remove('dimmed', 'highlighted');
+                        });
+                        lines.forEach(line => line.classList.remove('active'));
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
